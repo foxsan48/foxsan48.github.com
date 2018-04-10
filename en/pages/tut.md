@@ -24,24 +24,29 @@ If you don't have these installed use your package manager to get them `apt` or 
 ## Installing the Emsdk
 
 Let's get the repository we need and compile the tools!
+
 ```
 $ git clone https://github.com/juj/emsdk.git
 $ cd emsdk
 $ ./emsdk install latest
 $ ./emsdk activate latest
 ```
+
 After this you'll see a prompt asking you to do `source emsdk_env.sh`, which sets up the environment paths for the SDK. I suggest adding it to your `bashrc` (or your setup env vars for your terminal) just to make things easier in terms of not having to remember it each time.
 
 ## Using the Emsdk
 
 Now let's compile something to check it's all working as expected
 for this I'll assume you have a directory for playing with this in so let's make a directory under that for this test run and to get you used to the software
+
 ```
 $ mkdir test
 $ cd test
 $ touch test.cpp
 ```
+
 then open `test.cpp` in your code editor of choice and copy this file into it.
+
 ```cpp
 #include <iostream>
 
@@ -52,11 +57,14 @@ extern "C" {
     }
 }
 ```
+
 Then we can compile it with a nice one-liner, and run it with one more.
+
 ```
 $ em++ -s WASM=1 -o test.html test.cpp
 $ emrun test.html
 ```
+
 Now let me explain this a bit, if you have done C++ before most of this may make sense.
 
 For functions to be accessible outside of the binary they need to be wrapped in `extern "C"` this tells the compiler not to mangle the name, I don't know much about it but it's necessary you can read up on it more [here](https://en.wikipedia.org/wiki/Name_mangling).
@@ -70,6 +78,7 @@ I'll look into it more at some point.
 Now that is very nice and all but it's just printing a string to the console, let's get something a bit more interesting, passing data between JavaScript and C++.
 
 Let's change that `test.cpp` to pass a string from it, to JS and print it
+
 ```cpp
 #include <string>
 
@@ -84,7 +93,9 @@ extern "C" {
     }
 }
 ```
+
 But one moment, where is that `print_js` defined I hear you ask, in this next file I've called `lib.js` as it supplies supporting code.
+
 ```javascript
 //lib.js
 mergeInto(LibraryManager.library, { // template part
@@ -93,13 +104,20 @@ mergeInto(LibraryManager.library, { // template part
     }
 }); // template part
 ```
+
 Now if you try to compile this as before we will get an error `warning: unresolved symbol: print_js` which is expected, so let's link the library in with this
+
+
 ```
 $ em++ -s WASM=1 --js-library lib.js -o test.html main.cpp
 ```
+
+
 Now if we run this as before you'll notice something, no output on screen, instead the output will only be in the JS console, which you can access with `Ctrl+Shift+K` in Firefox.
 
 Wait, but what's this? all you get is a number, the reason for this is in C and C++ strings are a pointer to the first character, and the continues until you hit `\0` the end of a string. So we need to tell Javascript that, thankfully WebAssembly makes that easy, giving JS full access to WASM's memory, so let's fix our `lib.js` to deal with this
+
+
 ```javascript
 mergeInto(LibraryManager.library, {
     print_js: function (p) { // p for pointer
@@ -112,6 +130,7 @@ mergeInto(LibraryManager.library, {
     },
   });
 ```
+
 And if we compile that again, we'll get `Hello, World!` in the JS console! So now we have strings being sent one way, how about back to C++/WASM from Javascript? Let's get on to this.
 
 #### Written by Charlotte Lily Fields
