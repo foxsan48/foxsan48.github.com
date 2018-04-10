@@ -94,6 +94,9 @@ mergeInto(LibraryManager.library, { // template part
 }); // template part
 ```
 Now if you try to compile this as before we will get an error `warning : unresolved symbol: print_js` which is expected, so let's link the library in with this
+
+Note: There is a space between `warning` and `:` because I couldn't work out how to escape it on MDWiki.
+
 ```
 $ em++ -s WASM=1 --js-library lib.js -o test.html main.cpp
 ```
@@ -114,9 +117,190 @@ mergeInto(LibraryManager.library, {
 ```
 And if we compile that again, we'll get `Hello, World!` in the JS console! So now we have strings being sent one way, how about back to C++/WASM from Javascript? Let's get on to this.
 
-#### Written by Charlotte Lily Fields
+We need to make a change to our `lib.js` so we can store the location of the string's first character, so change it as follows
+```javascript
+mergeInto(LibraryManager.library, {
+  print_js: function (p) {
+    let h = Module.HEAPU8;
+    let s = "";
+    for (i = p; h[i]; i++) {
+      s += String.fromCharCode(h[i]);
+    }
+    console.log(s);
+    //return s;
+  },
+  stringPointer: function(p) {
+    window.stringLocation = p;
+  }
+});
+```
+
+Which just stores the pointer passed to it in a global variable called stringLocation. Now we need to call this from our C++ code passing the pointer to string, which is a small change to our original code.
+
+```cpp
+#include <string>
+
+extern "C" {
+    extern void print_js(char *);
+    extern void stringPointer(char *);
+
+
+    char js_str;
+    int main() {
+        stringPointer(&js_str);
+        strncpy(&js_str,"Hello, World!", 20);
+        print_js(&js_str);
+        return 0;
+    }
+}
+```
+
+Then we need to add a new file, so it's easier to call functions defined in `lib.js` and so we can access WebAssembly stuff like memory.
+
+Create a file called `post.js` and fill it with this:
+```javascript
+function setString_js(str){
+    let h = Module.HEAPU8;
+    let p = window.stringLocation;
+    for(i = 0; i < str.length; i++){
+        h[p+i] = str[i].charCodeAt(0);
+    }
+    h[p+str.length] = 0;
+}
+
+/*
+This function makes it possible to call print_js func.
+from pure JS easily.
+*/
+function print_js() {
+    Module.asmLibraryArg._print_js(window.stringLocation);
+}
+```
+`Module.asmLibraryArg._<func_name>` is how we access functions defined in `lib.js` and the first function in here writes to the stringLocation, character by character and then terminates with a `\0` as defined by the C/C++ string spec.
+
+Then compiling this we just need to add one more arg.
+
+`$ em++ -s WASM=1 --js-library lib.js --post-js post.js -o test.html main.cpp`
+
+And then by using the js console you can call
+```javascript
+setString_js("testing")
+print_js();
+//testing
+```
+
+And there you have it passing a string, to actually use this in C++ you'd have to call a function telling it to read the string into another location to be kept, but for the purpose of this tutorial let's just echo it out.
+
+The change to our C++ code is rather small, adding another function to be called when JS changes the string.
+```cpp
+#include <iostream>
+#include <string>
+
+extern "C" {
+    extern void print_js(char *);
+    extern void stringPointer(char *);
+
+
+    char js_str;
+    int main() {
+        stringPointer(&js_str);
+        strncpy(&js_str,"the text you want", 20);
+        print_js(&js_str);
+        return 0;
+    }
+
+    void print_str(char * str) {
+        std::cout << str << std::endl;
+    }
+}
+```
+and a one line change to our `post.js`
+```javascript
+function setString_js(str){
+    let h = Module.HEAPU8;
+    let p = window.stringLocation;
+    for(i = 0; i < str.length; i++){
+        h[p+i] = str[i].charCodeAt(0);
+    }
+    h[p+str.length] = 0;
+    Module._print_str(window.stringLocation);
+}
+
+function print_js() {
+    Module.asmLibraryArg._print_js(window.stringLocation);
+}
+```
+This is something new to us now, `Module._print_str(...)` which is how we call WASM functions from Javascript.
+this requires one more change to our compiling command
+```
+$ em++ -s WASM=1 --js-library lib.js --post-js post.js -s EXPORTED_FUNCTIONS='["_main","_print_str"]' -o index.html main.cpp
+```
+So you add functions to be used or accessed outside of the C++ code, prepending `_` there is an alternate way of doing this by using
+```cpp
+#include <emscripten.h>
+
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE
+    int main() {
+        stringPointer(&js_str);
+        strncpy(&js_str,"the text you want", 20);
+        print_js(&js_str);
+        return 0;
+    }
+}
+```
+which then gets rid of the need of `-s EXPORTED_FUNCTIONS` all together.
+
+Anyway as you run this you'll see it all works as expected.
+
+Now we've dealt with passing strings back and forth, from now onwards I'll stop supplying the whole files when I make changes, I'll just specify where they are.
+
+## Booleans
+
+For booleans, they are represented by `0` and `1` in C/C++, the code I used to do this is
+
+```cpp
+//...
+extern void boolPointer(bool *);
+
+bool js_bool;
+int main() {
+    //...
+    js_bool = true;
+    get_bool_js(&js_bool);
+    //...
+}
+```
+and added to `lib.js`
+```javascript
+boolPointer: function(p) {
+    window.boolLocation = p;
+},
+get_bool_js: function(p) {
+    let h = Module.HEAPU8;
+    console.log(h[p]);
+}
+```
+and then for sending booleans back to WASM, added this to `post.js`
+```javascript
+function setBool_js(bool) {
+    let h = Module.HEAPU8;
+    let p = window.stringLocation;
+    if (bool) {
+        h[p] = 1;
+    } else {
+        h[p] = 0;
+    }
+}
+```
+
+And that is booleans done! 
+On to numbers now (as I write this, I haven't done this yet and I fear this being tricky)
+## Numbers!
+## Written by Charlotte Lily Fields
 Want to give me feedback or support me in writing more? You can do so here:
-- [Twitter @Foxsan48](https://twitter.com/Foxsan48)
+[gimmick:TwitterFollow](@Foxsan48)
+- [@Foxsan48](https://twitter.com/Foxsan48)
 - [Ko-Fi/Charlotte](https://ko-fi.com/charlotte)
 - [Patreon](https://www.patreon.com/CharlotteFields)
 
