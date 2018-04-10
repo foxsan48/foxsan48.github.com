@@ -105,7 +105,7 @@
     });
     ```
 
-    Now if you try to compile this as before we will get an error `\warning: unresolved symbol: print_js` which is expected, so let's link the library in with this
+    Now if you try to compile this as before we will get an error `warning\: unresolved symbol: print_js` which is expected, so let's link the library in with this
 
 
     ```
