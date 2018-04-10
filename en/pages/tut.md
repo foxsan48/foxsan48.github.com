@@ -93,7 +93,7 @@ mergeInto(LibraryManager.library, { // template part
     }
 }); // template part
 ```
-Now if you try to compile this as before we will get an error `warning&#58; unresolved symbol: print_js` which is expected, so let's link the library in with this
+Now if you try to compile this as before we will get an error `warning : unresolved symbol: print_js` which is expected, so let's link the library in with this
 ```
 $ em++ -s WASM=1 --js-library lib.js -o test.html main.cpp
 ```
