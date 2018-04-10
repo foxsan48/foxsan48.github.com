@@ -98,14 +98,14 @@ But one moment, where is that `print_js` defined I hear you ask, in this next fi
 
 ```javascript
 //lib.js
-mergeInto(LibraryManager.library, { // template part
+mergeInto(LibraryManager.library, {
     print_js: function(str) { // Our code!
         console.log(str);
     }
-}); // template part
+});
 ```
 
-Now if you try to compile this as before we will get an error \`warning: unresolved symbol: print_js\` which is expected, so let's link the library in with this
+Now if you try to compile this as before we will get an error `warning: unresolved symbol: print_js` which is expected, so let's link the library in with this
 
 
 ```
