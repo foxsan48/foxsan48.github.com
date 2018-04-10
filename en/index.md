@@ -1,5 +1,7 @@
-Home
-=====
+---
+title: test title
+---
+
 # It works! ;-)
 
 
