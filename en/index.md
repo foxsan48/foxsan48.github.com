@@ -1,6 +1,3 @@
-Page Title
-==========
-
 # It works! ;-)
 
 
