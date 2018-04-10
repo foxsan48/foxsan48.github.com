@@ -180,7 +180,9 @@ function print_js() {
 
 Then compiling this we just need to add one more arg.
 
-`$ em++ -s WASM=1 --js-library lib.js --post-js post.js -o test.html main.cpp`
+```
+$ em++ -s WASM=1 --js-library lib.js --post-js post.js -o test.html main.cpp
+```
 
 And then by using the js console you can call
 ```javascript
@@ -297,6 +299,36 @@ function setBool_js(bool) {
 And that is booleans done! 
 On to numbers now (as I write this, I haven't done this yet and I fear this being tricky)
 ## Numbers!
+### Floats
+Added to `main.cpp`
+```cpp
+// ...
+extern void floatPointer(float *);
+extern void get_float_js(float *);
+// ...
+js_float = 3.141;
+get_float_js(&js_float);
+```
+and then to `lib.js`
+```javascript
+floatPointer: function(p) {
+    window.floatLocation = p;
+},
+get_float_js: function(p) {
+    let dv = new DataView(Module.wasmMemory.buffer);
+    console.log(dv.getFloat32(p, true)); 
+    // true or false depends on your OS so you may need to tweak this
+}
+```
+[Information on DataView](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat32)
+Then to set the float in `post.js` is a few lines
+```javascript
+function setFloat_js(f_val) {
+    let dv = new DataView(Module.wasmMemory.buffer);
+    dv.setFloat32(window.floatLocation, f_val, true);
+}
+```
+
 ## Written by Charlotte Lily Fields
 Want to give me feedback or support me in writing more? You can do so here:
 [gimmick:TwitterFollow](@Foxsan48)
