@@ -1,6 +1,5 @@
----
-title: test title
----
+Page Title
+====
 
 # It works! ;-)
 
