@@ -1,0 +1,451 @@
+<!doctype html>
+<html>
+<head>
+    <base href="/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="author" content="">
+
+<meta name="description" content="">
+
+<title>Getting Started in WebAssembly, with C&#43;&#43;</title>
+<meta name="generator" content="Hugo 0.38.2" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/pojoaque.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700" rel="stylesheet" type="text/css">
+<link  href="http://example.org//css/theme.min.css" rel="stylesheet" type="text/css">
+
+</head>
+<body>
+<div class="page-container container-fluid">
+<div class="col-md-3 menu">
+    <nav class="col-md-3">
+    <h3 class="home-link"><a href="http://example.org/">Root</a></h3>
+    <div id="last-posts" class="open">
+        <h3 data-open="last-posts">Charlotte Lily Fields - Most recent posts</h3>
+        <ul>
+            
+            <li><a href="http://example.org/posts/another/">test post</a></li>
+            
+            <li><a href="http://example.org/posts/getting-started-in-webassembly-with-cpp/">Getting Started in WebAssembly, with C&#43;&#43;</a></li>
+            
+        </ul>
+    </div>
+
+    
+
+    
+</nav>
+
+</div>
+<div class="col-md-9 content">
+
+<h1>Getting Started in WebAssembly, with C&#43;&#43;</h1>
+<h4>Published 04-11-2018 11:46:22</h4>
+
+<a href="https://twitter.com/share" class="twitter-share-button" data-via="kendo5731"></a>
+<script>!function (d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0], p = /^http:/.test(d.location) ? 'http' : 'https';
+    if (!d.getElementById(id)) {
+        js = d.createElement(s);
+        js.id = id;
+        js.src = p + '://platform.twitter.com/widgets.js';
+        fjs.parentNode.insertBefore(js, fjs);
+    }
+}(document, 'script', 'twitter-wjs');</script>
+
+<div class="fb-share-button" data-href="http://example.org/posts/getting-started-in-webassembly-with-cpp/" data-layout="button"></div>
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en-US/sdk.js#xfbml=1&version=v2.5";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<article>
+    <p>This is an introduction to <a href="http://webassembly.org/">WebAssembly</a>, in the browser using <a href="http://kripken.github.io/emscripten-site/">Emscripten</a>.
+</p>
+
+<h2 id="firstly-why-did-i-make-this-article">Firstly, why did I make this article?</h2>
+
+<p>I found that there was a lack of tutorials and/or information in one easy to understand place, so I decided to make this.</p>
+
+<p>I hope you find it helpful.</p>
+
+<h5 id="note-this-is-written-for-linux-osx">Note this is written for Linux/OSX</h5>
+
+<p>I will update this for Windows as soon as I can, but it shouldn&rsquo;t be too hard using the information on the WebAssembly site.</p>
+
+<h2 id="let-s-get-started-shall-we">Let&rsquo;s get started shall we?</h2>
+
+<p>Okay so, firstly we&rsquo;ll need to get the Emsdk (development tools for WebAssembly) instructions to doing so can be found <a href="http://webassembly.org/getting-started/developers-guide/">here on the WebAssembly site</a> but I&rsquo;ll copy them here so you can get all the information in one place.</p>
+
+<p>Let&rsquo;s check we have the dependencies:</p>
+
+<ul>
+<li>Git</li>
+<li>Cmake</li>
+<li>GCC/XCode</li>
+<li>Python 2.7.x (installed on most Linux &amp; OSX systems by default.)</li>
+</ul>
+
+<p>If you don&rsquo;t have these installed use your package manager to get them <code>apt</code> or <code>brew</code> for OSX or whatever package manager you have for Linux.</p>
+
+<p><code>xcode-select --install</code> for xcode</p>
+
+<h2 id="installing-the-emsdk">Installing the Emsdk</h2>
+
+<p>Let&rsquo;s get the repository we need and compile the tools!</p>
+
+<pre><code>$ git clone https://github.com/juj/emsdk.git
+$ cd emsdk
+$ ./emsdk install latest
+$ ./emsdk activate latest
+</code></pre>
+
+<p>After this you&rsquo;ll see a prompt asking you to do <code>source emsdk_env.sh</code>, which sets up the environment paths for the SDK. I suggest adding it to your <code>bashrc</code> (or your setup env vars for your terminal) just to make things easier in terms of not having to remember it each time.</p>
+
+<h2 id="using-the-emsdk">Using the Emsdk</h2>
+
+<p>Now let&rsquo;s compile something to check it&rsquo;s all working as expected
+for this I&rsquo;ll assume you have a directory for playing with this in so let&rsquo;s make a directory under that for this test run and to get you used to the software</p>
+
+<pre><code>$ mkdir test
+$ cd test
+$ touch test.cpp
+</code></pre>
+
+<p>then open <code>test.cpp</code> in your code editor of choice and copy this file into it.</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+extern &quot;C&quot; {
+    int main() {
+        std::cout &lt;&lt; &quot;Hello, World!&quot; &lt;&lt; std::endl;
+        return 0;
+    }
+}
+</code></pre>
+
+<p>Then we can compile it with a nice one-liner, and run it with one more.</p>
+
+<pre><code>$ em++ -s WASM=1 -o test.html test.cpp
+$ emrun test.html
+</code></pre>
+
+<p>Now let me explain this a bit, if you have done C++ before most of this may make sense.</p>
+
+<p>For functions to be accessible outside of the binary they need to be wrapped in <code>extern &quot;C&quot;</code> this tells the compiler not to mangle the name, I don&rsquo;t know much about it but it&rsquo;s necessary you can read up on it more <a href="https://en.wikipedia.org/wiki/Name_mangling">here</a>.</p>
+
+<h5 id="wait-what-is-this-massive-javascript-file">Wait, what is this massive JavaScript file?</h5>
+
+<p>If you look in the directory we compiled that code in you&rsquo;ll see a file called <code>test.js</code> which is rather large, I haven&rsquo;t looked into it too much yet but it is necessary for setting up the environment for WebAssembly to run in, also includes polyfills, my more JS inclined friends told me.
+I&rsquo;ll look into it more at some point.</p>
+
+<h2 id="let-s-do-something-more-interesting">Let&rsquo;s do something more interesting</h2>
+
+<p>Now that is very nice and all but it&rsquo;s just printing a string to the console, let&rsquo;s get something a bit more interesting, passing data between JavaScript and C++.</p>
+
+<p>Let&rsquo;s change that <code>test.cpp</code> to pass a string from it, to JS and print it</p>
+
+<pre><code class="language-cpp">#include &lt;string&gt;
+
+extern &quot;C&quot; {
+    extern void print_js(char *);
+
+    char test;
+    int main() {
+        strncpy(&amp;test,&quot;Hello, World!&quot;, 16);
+        print_js(&amp;test);
+        return 0;
+    }
+}
+</code></pre>
+
+<p>But one moment, where is that <code>print_js</code> defined I hear you ask, in this next file I&rsquo;ve called <code>lib.js</code> as it supplies supporting code.</p>
+
+<pre><code class="language-javascript">//lib.js
+mergeInto(LibraryManager.library, { // template part
+    print_js: function(str) { // Our code!
+        console.log(str);
+    }
+}); // template part
+</code></pre>
+
+<p>Now if you try to compile this as before we will get an error <code>warning : unresolved symbol: print_js</code> which is expected, so let&rsquo;s link the library in with this</p>
+
+<p>Note: There is a space between <code>warning</code> and <code>:</code> because I couldn&rsquo;t work out how to escape it on MDWiki.</p>
+
+<pre><code>$ em++ -s WASM=1 --js-library lib.js -o test.html main.cpp
+</code></pre>
+
+<p>Now if we run this as before you&rsquo;ll notice something, no output on screen, instead the output will only be in the JS console, which you can access with <code>Ctrl+Shift+K</code> in Firefox.</p>
+
+<p>Wait, but what&rsquo;s this? all you get is a number, the reason for this is in C and C++ strings are a pointer to the first character, and the continues until you hit <code>\0</code> the end of a string. So we need to tell Javascript that, thankfully WebAssembly makes that easy, giving JS full access to WASM&rsquo;s memory, so let&rsquo;s fix our <code>lib.js</code> to deal with this</p>
+
+<pre><code class="language-javascript">mergeInto(LibraryManager.library, {
+    print_js: function (p) { // p for pointer
+        let h = Module.HEAPU8; // Access to memory as unsigned 8 bit/byte groups
+        let s = &quot;&quot;;
+        for (i = p; h[i]; i++) { // continues until h[i] = 0, the end of a string in C/C++
+          s += String.fromCharCode(h[i]);
+        }
+        console.log(s);
+    },
+  });
+</code></pre>
+
+<p>And if we compile that again, we&rsquo;ll get <code>Hello, World!</code> in the JS console! So now we have strings being sent one way, how about back to C++/WASM from Javascript? Let&rsquo;s get on to this.</p>
+
+<p>We need to make a change to our <code>lib.js</code> so we can store the location of the string&rsquo;s first character, so change it as follows</p>
+
+<pre><code class="language-javascript">mergeInto(LibraryManager.library, {
+  print_js: function (p) {
+    let h = Module.HEAPU8;
+    let s = &quot;&quot;;
+    for (i = p; h[i]; i++) {
+      s += String.fromCharCode(h[i]);
+    }
+    console.log(s);
+    //return s;
+  },
+  stringPointer: function(p) {
+    window.stringLocation = p;
+  }
+});
+</code></pre>
+
+<p>Which just stores the pointer passed to it in a global variable called stringLocation. Now we need to call this from our C++ code passing the pointer to string, which is a small change to our original code.</p>
+
+<pre><code class="language-cpp">#include &lt;string&gt;
+
+extern &quot;C&quot; {
+    extern void print_js(char *);
+    extern void stringPointer(char *);
+
+
+    char js_str;
+    int main() {
+        stringPointer(&amp;js_str);
+        strncpy(&amp;js_str,&quot;Hello, World!&quot;, 20);
+        print_js(&amp;js_str);
+        return 0;
+    }
+}
+</code></pre>
+
+<p>Then we need to add a new file, so it&rsquo;s easier to call functions defined in <code>lib.js</code> and so we can access WebAssembly stuff like memory.</p>
+
+<p>Create a file called <code>post.js</code> and fill it with this:</p>
+
+<pre><code class="language-javascript">function setString_js(str){
+    let h = Module.HEAPU8;
+    let p = window.stringLocation;
+    for(i = 0; i &lt; str.length; i++){
+        h[p+i] = str[i].charCodeAt(0);
+    }
+    h[p+str.length] = 0;
+}
+
+/*
+This function makes it possible to call print_js func.
+from pure JS easily.
+*/
+function print_js() {
+    Module.asmLibraryArg._print_js(window.stringLocation);
+}
+</code></pre>
+
+<p><code>Module.asmLibraryArg._&lt;func_name&gt;</code> is how we access functions defined in <code>lib.js</code> and the first function in here writes to the stringLocation, character by character and then terminates with a <code>\0</code> as defined by the C/C++ string spec.</p>
+
+<p>Then compiling this we just need to add one more arg.</p>
+
+<pre><code>$ em++ -s WASM=1 --js-library lib.js --post-js post.js -o test.html main.cpp
+</code></pre>
+
+<p>And then by using the js console you can call</p>
+
+<pre><code class="language-javascript">setString_js(&quot;testing&quot;)
+print_js();
+//testing
+</code></pre>
+
+<p>And there you have it passing a string, to actually use this in C++ you&rsquo;d have to call a function telling it to read the string into another location to be kept, but for the purpose of this tutorial let&rsquo;s just echo it out.</p>
+
+<p>The change to our C++ code is rather small, adding another function to be called when JS changes the string.</p>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+extern &quot;C&quot; {
+    extern void print_js(char *);
+    extern void stringPointer(char *);
+
+
+    char js_str;
+    int main() {
+        stringPointer(&amp;js_str);
+        strncpy(&amp;js_str,&quot;the text you want&quot;, 20);
+        print_js(&amp;js_str);
+        return 0;
+    }
+
+    void print_str(char * str) {
+        std::cout &lt;&lt; str &lt;&lt; std::endl;
+    }
+}
+</code></pre>
+
+<p>and a one line change to our <code>post.js</code></p>
+
+<pre><code class="language-javascript">function setString_js(str){
+    let h = Module.HEAPU8;
+    let p = window.stringLocation;
+    for(i = 0; i &lt; str.length; i++){
+        h[p+i] = str[i].charCodeAt(0);
+    }
+    h[p+str.length] = 0;
+    Module._print_str(window.stringLocation);
+}
+
+function print_js() {
+    Module.asmLibraryArg._print_js(window.stringLocation);
+}
+</code></pre>
+
+<p>This is something new to us now, <code>Module._print_str(...)</code> which is how we call WASM functions from Javascript.
+this requires one more change to our compiling command</p>
+
+<pre><code>$ em++ -s WASM=1 --js-library lib.js --post-js post.js -s EXPORTED_FUNCTIONS='[&quot;_main&quot;,&quot;_print_str&quot;]' -o index.html main.cpp
+</code></pre>
+
+<p>So you add functions to be used or accessed outside of the C++ code, prepending <code>_</code> there is an alternate way of doing this by using</p>
+
+<pre><code class="language-cpp">#include &lt;emscripten.h&gt;
+
+extern &quot;C&quot; {
+    EMSCRIPTEN_KEEPALIVE
+    int main() {
+        stringPointer(&amp;js_str);
+        strncpy(&amp;js_str,&quot;the text you want&quot;, 20);
+        print_js(&amp;js_str);
+        return 0;
+    }
+}
+</code></pre>
+
+<p>which then gets rid of the need of <code>-s EXPORTED_FUNCTIONS</code> all together.</p>
+
+<p>Anyway as you run this you&rsquo;ll see it all works as expected.</p>
+
+<p>Now we&rsquo;ve dealt with passing strings back and forth, from now onwards I&rsquo;ll stop supplying the whole files when I make changes, I&rsquo;ll just specify where they are.</p>
+
+<h2 id="booleans">Booleans</h2>
+
+<p>For booleans, they are represented by <code>0</code> and <code>1</code> in C/C++, the code I used to do this is</p>
+
+<pre><code class="language-cpp">//...
+extern void boolPointer(bool *);
+
+bool js_bool;
+int main() {
+    //...
+    js_bool = true;
+    get_bool_js(&amp;js_bool);
+    //...
+}
+</code></pre>
+
+<p>and added to <code>lib.js</code></p>
+
+<pre><code class="language-javascript">boolPointer: function(p) {
+    window.boolLocation = p;
+},
+get_bool_js: function(p) {
+    let h = Module.HEAPU8;
+    console.log(h[p]);
+}
+</code></pre>
+
+<p>and then for sending booleans back to WASM, added this to <code>post.js</code></p>
+
+<pre><code class="language-javascript">function setBool_js(bool) {
+    let h = Module.HEAPU8;
+    let p = window.stringLocation;
+    if (bool) {
+        h[p] = 1;
+    } else {
+        h[p] = 0;
+    }
+}
+</code></pre>
+
+<p>And that is booleans done!
+On to numbers now (as I write this, I haven&rsquo;t done this yet and I fear this being tricky)</p>
+
+<h2 id="numbers">Numbers!</h2>
+
+<h3 id="floats">Floats</h3>
+
+<p>Added to <code>main.cpp</code></p>
+
+<pre><code class="language-cpp">// ...
+extern void floatPointer(float *);
+extern void get_float_js(float *);
+// ...
+js_float = 3.141;
+get_float_js(&amp;js_float);
+</code></pre>
+
+<p>and then to <code>lib.js</code></p>
+
+<pre><code class="language-javascript">floatPointer: function(p) {
+    window.floatLocation = p;
+},
+get_float_js: function(p) {
+    let dv = new DataView(Module.wasmMemory.buffer);
+    console.log(dv.getFloat32(p, true)); 
+    // true or false depends on your OS so you may need to tweak this
+}
+</code></pre>
+
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat32">Information on DataView</a>
+Then to set the float in <code>post.js</code> is a few lines</p>
+
+<pre><code class="language-javascript">function setFloat_js(f_val) {
+    let dv = new DataView(Module.wasmMemory.buffer);
+    dv.setFloat32(window.floatLocation, f_val, true);
+}
+</code></pre>
+
+<h2 id="written-by-charlotte-lily-fields">Written by Charlotte Lily Fields</h2>
+
+<p>Want to give me feedback or support me in writing more? You can do so here:</p>
+
+<p><a class="twitter-follow-button" data-show-count=false
+  href="https://twitter.com/Foxsan48">
+Follow @Foxsan48</a></p>
+
+<ul>
+<li><a href="https://twitter.com/Foxsan48">View my Twitter @Foxsan48</a></li>
+<li><a href="https://ko-fi.com/charlotte">Ko-Fi/Charlotte</a></li>
+<li><a href="https://www.patreon.com/CharlotteFields">Patreon</a></li>
+</ul>
+
+<p><a href="https://jbt.github.io/markdown-editor/">Written with the help of the Markdown editor from JBT</a></p>
+</article>
+
+
+
+</div>
+</div>
+<script src="http://example.org//js/theme.min.js" type="text/javascript"></script>
+
+
+</body>
+</html>
+

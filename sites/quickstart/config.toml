@@ -1,0 +1,6 @@
+baseURL = "http://example.org/"
+languageCode = "en-us"
+title = "Charlotte Lily Fields"
+theme = "code-editor"
+[permalinks]
+  post = "/:year/:month/:title/"
