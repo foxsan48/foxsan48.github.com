@@ -342,6 +342,44 @@ function setFloat_js(f_val) {
 }
 ```
 
+### Integers
+Integers are quite like the floats in terms of code we need to add, so here is the `main.cpp` additions
+```cpp
+extern void intPointer(int *);
+extern void get_int_js(int *);
+//...
+js_int = 512;
+get_int_js(&js_int);
+//...
+void print_int(int * num) {
+    std::cout << *num << std::endl;
+}
+```
+`lib.js` additions
+```javascript
+intPointer: function(p) {
+    window.intLocation = p;
+},
+get_int_js: function(p) {
+    let dv = new DataView(Module.wasmMemory.buffer);
+    console.log(dv.getInt32(p, true));
+}
+```
+and `post.js` additions
+```javascript
+function setInt_js(val) {
+    let dv = new DataView(Module.wasmMemory.buffer);
+    dv.setInt32(window.intLocation, val, true);
+    Module._print_int(window.intLocation);
+}
+```
+and finally, the compiling line!
+```
+$ em++ -s WASM=1 --js-library lib.js --post-js post.js -s EXPORTED_FUNCTIONS='["_main","_print_str","_print_int"]' -o index.html main.cpp
+```
+
+I will be re-writing this using StringStream as I recently discovered asking around about this tutorial, it should make this whole thing a lot simpler! 
+
 ## Written by Charlotte Lily Fields
 Want to give me feedback or support me in writing more? You can do so here:
 
