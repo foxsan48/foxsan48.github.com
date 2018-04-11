@@ -1,4 +1,4 @@
-baseURL = "http://example.org/"
+baseURL = "https://foxsan48.github.io/sites/quickstart/public/"
 languageCode = "en-us"
 title = "Charlotte Lily Fields"
 theme = "code-editor"

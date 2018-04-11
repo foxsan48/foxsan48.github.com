@@ -3,34 +3,34 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>http://example.org/posts/another/</loc>
+    <loc>https://foxsan48.github.io/sites/quickstart/public/posts/another/</loc>
     <lastmod>2018-04-11T11:59:00+10:00</lastmod>
   </url>
   
   <url>
-    <loc>http://example.org/posts/getting-started-in-webassembly-with-cpp/</loc>
+    <loc>https://foxsan48.github.io/sites/quickstart/public/posts/getting-started-in-webassembly-with-cpp/</loc>
     <lastmod>2018-04-11T11:46:22+10:00</lastmod>
   </url>
   
   <url>
-    <loc>http://example.org/categories/</loc>
+    <loc>https://foxsan48.github.io/sites/quickstart/public/categories/</loc>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://example.org/</loc>
+    <loc>https://foxsan48.github.io/sites/quickstart/public/</loc>
     <lastmod>2018-04-11T11:59:00+10:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://example.org/posts/</loc>
+    <loc>https://foxsan48.github.io/sites/quickstart/public/posts/</loc>
     <lastmod>2018-04-11T11:59:00+10:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://example.org/tags/</loc>
+    <loc>https://foxsan48.github.io/sites/quickstart/public/tags/</loc>
     <priority>0</priority>
   </url>
   
