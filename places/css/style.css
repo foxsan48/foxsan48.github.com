@@ -1,0 +1,40 @@
+body {
+  font-family: monospace;
+  line-height: 1.1em;
+}
+
+#outtext {
+/*line-height: 1em;
+*/
+display:none;
+height: 150;
+overflow-y: scroll;
+}
+
+.container {
+  width: 20%;
+  display: flex;
+  flex-directon: row;
+  text-align: center;
+  justify-content: space-around;
+}
+
+span[data-time='pm'] {
+  background-color: #7ddbfa;
+}
+span[data-time='am'] {
+  background-color: #fa9c7d;
+}
+
+canvas {
+  /*
+  border: solid red;
+  */
+}
+
+div#result > span {
+ padding-left: 5px;
+ padding-right: 5px;
+ padding-top: 1px;
+ padding-bottom: 1px;
+}
